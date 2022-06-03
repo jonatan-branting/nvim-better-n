@@ -1,3 +1,6 @@
+# better-n.nvim
+Repeat movement commands using `n` in the same vein that `.` repeats action commands.
+
 ## About
 `better-n.nvim` attempts address a problem with Vim, which is that almost every
 single binding is used by default, for (often) very niche actions. I want to be
