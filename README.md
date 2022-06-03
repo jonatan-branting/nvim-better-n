@@ -20,7 +20,7 @@ cumbersome in the cases were you wanted to press it multiple times.
 ## Install
 Install as usual, using your favourite plugin manager.
 
-```
+```lua
 use "jonatan-branting/better-n.nvim"
 ```
 
