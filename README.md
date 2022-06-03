@@ -32,7 +32,7 @@ use "jonatan-branting/better-n.nvim"
 ```lua
 require("better-n").setup {
   callbacks = {
-    mapping_executed = function(_, key)
+    mapping_executed = function(_mode, _key)
       -- Clear highlighting, indicating that `n` will not goto the next
       -- highlighted search-term
       vim.cmd [[ nohl ]]
