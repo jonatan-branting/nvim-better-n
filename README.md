@@ -19,6 +19,8 @@ without coming up with a bind that is easier to repeat.
 Using this binding for that motion would, without this plugin, be rather
 cumbersome in the cases were you wanted to press it multiple times.
 
+It should also be noted that this frees up both `;`, and `,` for other actions,
+as `n` will instead handle their current task.
 
 ## Install
 Install as usual, using your favourite plugin manager.
