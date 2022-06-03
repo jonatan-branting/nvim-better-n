@@ -1,8 +1,8 @@
-# better-n.nvim
+# nvim-better-n
 Repeat movement commands using `n` in the same vein that `.` repeats action commands.
 
 ## About
-`better-n.nvim` attempts address a problem with Vim, which is that almost every
+`nvim-better-n` attempts address a problem with Vim, which is that almost every
 single binding is used by default, for (often) very niche actions. I want to be
 able to reuse convenient bindings for similar things, reducing both mental
 overhead as well as opening up more bindings, allowing Vim to be more
@@ -24,7 +24,7 @@ cumbersome in the cases were you wanted to press it multiple times.
 Install as usual, using your favourite plugin manager.
 
 ```lua
-use "jonatan-branting/better-n.nvim"
+use "jonatan-branting/nvim-better-n"
 ```
 
 ## Setup
@@ -64,7 +64,7 @@ vim.keymap.set("n", "<s-n>", require("better-n").shift_n, {nowait = true})
 ```
 
 ## Defaults
-By default, `better-n.nvim` maps the following bindings:
+By default, `nvim-better-n` maps the following bindings:
 
 ```lua
 local mappings_table = {
