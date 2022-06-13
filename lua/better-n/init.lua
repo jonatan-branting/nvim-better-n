@@ -21,7 +21,7 @@ local mappings_table = {
 }
 
 local execute_map = function(map)
-  vim.api.nvim_feedkeys(utils.t(mapping_prefix .. map), latest_movement_cmd.mode, false)
+  vim.api.nvim_feedkeys(utils.t(vim.v.count1 .. mapping_prefix .. map), latest_movement_cmd.mode, false)
 end
 
 local n = function()
@@ -75,7 +75,7 @@ local register_key = function(mode, key)
   vim.keymap.set(mode, key, function()
     autocmd.emit("MappingExecuted", mode, key)
 
-    vim.api.nvim_feedkeys(utils.t(mapping_prefix .. key), mode, false)
+    vim.api.nvim_feedkeys(utils.t(vim.v.count1 .. mapping_prefix .. key), mode, false)
   end)
 end
 
