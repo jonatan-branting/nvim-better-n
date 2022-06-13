@@ -5,7 +5,7 @@ local mapping_prefix = "<plug>(better-n)"
 
 local latest_movement_cmd = {
   mode = "n",
-  key = "n"
+  key = "/"
 }
 
 local mappings_table = {
