@@ -54,37 +54,48 @@ local register_cmdline = function()
   })
 end
 
-local action_from_key = function(mode, key)
+local keymap_from_key = function(bufnr, mode, key)
   local transformed_key = utils.t(key)
 
-  for _, keymap in pairs(vim.api.nvim_get_keymap(mode)) do
+  for _, keymap in ipairs(vim.api.nvim_buf_get_keymap(bufnr, mode)) do
     if keymap.lhs == transformed_key then
-      return keymap.callback or keymap.rhs
+      return keymap
+    end
+  end
+
+  for _, keymap in ipairs(vim.api.nvim_get_keymap(mode)) do
+    if keymap.lhs == transformed_key then
+      return keymap
     end
   end
 end
 
-local register_key = function(mode, key)
-  -- TODO doesn't support buffer local mappings properly.
-
+local register_key = function(bufnr, mode, key)
   -- Store the original keymap in a <plug>(better-n) keybind, so we can reuse the
   -- functionality
-  local action = action_from_key(mode, key) or key
-  vim.keymap.set(mode, mapping_prefix .. key, action, {silent = true})
+  local keymap = keymap_from_key(bufnr, mode, key)
+
+  -- Avoids recursively remapping itself forever
+  if keymap and keymap.desc == "better_n_remap" then
+    return
+  end
+
+  local action = (keymap and (keymap.callback or keymap.rhs)) or key
+  vim.keymap.set(mode, mapping_prefix .. key, action, {silent = true, buffer = bufnr})
 
   vim.keymap.set(mode, key, function()
     autocmd.emit("MappingExecuted", mode, key)
 
     vim.api.nvim_feedkeys(utils.t(vim.v.count1 .. mapping_prefix .. key), mode, false)
-  end)
+  end, { silent = true, buffer = bufnr, desc = "better_n_remap" })
 end
 
-local register_keys = function()
+local register_keys = function(bufnr)
   for key, mapping in pairs(mappings_table) do
     if mapping.cmdline then goto continue end
 
     for _, mode in ipairs({ "n", "v" }) do
-      register_key(mode, key)
+      register_key(bufnr, mode, key)
     end
 
     ::continue::
@@ -108,9 +119,15 @@ local setup = function(opts)
   setup_autocmds(opts.callbacks.mapping_executed)
 
   store_baseline_keys()
-
   register_cmdline()
-  register_keys()
+
+  vim.api.nvim_create_autocmd("BufEnter", {
+    callback = function(data)
+      vim.schedule(function()
+        pcall(register_keys, data.buf)
+      end)
+    end
+  })
 end
 
 return {
