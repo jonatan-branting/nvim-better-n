@@ -133,5 +133,6 @@ end
 return {
   setup = setup,
   n = n,
+  register_keys = register_keys,
   shift_n = shift_n,
 }
