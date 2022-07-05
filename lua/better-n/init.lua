@@ -70,7 +70,7 @@ local keymap_from_key = function(bufnr, mode, key)
   end
 end
 
-local register_key = function(bufnr, mode, key)
+local remap_key = function(bufnr, mode, key)
   -- Store the original keymap in a <plug>(better-n) keybind, so we can reuse the
   -- functionality
   local keymap = keymap_from_key(bufnr, mode, key)
@@ -90,16 +90,26 @@ local register_key = function(bufnr, mode, key)
   end, { silent = true, buffer = bufnr, desc = "better_n_remap" })
 end
 
-local register_keys = function(bufnr)
+local remap_keys = function(bufnr)
   for key, mapping in pairs(mappings_table) do
     if mapping.cmdline then goto continue end
 
     for _, mode in ipairs({ "n", "v" }) do
-      register_key(bufnr, mode, key)
+      remap_key(bufnr, mode, key)
     end
 
     ::continue::
   end
+end
+
+local register_keys = function()
+  vim.api.nvim_create_autocmd("BufEnter", {
+    callback = function(data)
+      vim.schedule(function()
+        pcall(remap_keys, data.buf)
+      end)
+    end
+  })
 end
 
 local store_baseline_keys = function()
@@ -119,15 +129,9 @@ local setup = function(opts)
   setup_autocmds(opts.callbacks.mapping_executed)
 
   store_baseline_keys()
-  register_cmdline()
 
-  vim.api.nvim_create_autocmd("BufEnter", {
-    callback = function(data)
-      vim.schedule(function()
-        pcall(register_keys, data.buf)
-      end)
-    end
-  })
+  register_cmdline()
+  register_keys()
 end
 
 return {
