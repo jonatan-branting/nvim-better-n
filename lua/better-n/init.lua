@@ -54,41 +54,62 @@ local register_cmdline = function()
   })
 end
 
-local action_from_key = function(mode, key)
+local keymap_from_key = function(bufnr, mode, key)
   local transformed_key = utils.t(key)
 
-  for _, keymap in pairs(vim.api.nvim_get_keymap(mode)) do
+  for _, keymap in ipairs(vim.api.nvim_buf_get_keymap(bufnr, mode)) do
     if keymap.lhs == transformed_key then
-      return keymap.callback or keymap.rhs
+      return keymap
+    end
+  end
+
+  for _, keymap in ipairs(vim.api.nvim_get_keymap(mode)) do
+    if keymap.lhs == transformed_key then
+      return keymap
     end
   end
 end
 
-local register_key = function(mode, key)
-  -- TODO doesn't support buffer local mappings properly.
-
+local remap_key = function(bufnr, mode, key)
   -- Store the original keymap in a <plug>(better-n) keybind, so we can reuse the
   -- functionality
-  local action = action_from_key(mode, key) or key
-  vim.keymap.set(mode, mapping_prefix .. key, action, {silent = true})
+  local keymap = keymap_from_key(bufnr, mode, key)
+
+  -- Avoids recursively remapping itself forever
+  if keymap and keymap.desc == "better_n_remap" then
+    return
+  end
+
+  local action = (keymap and (keymap.callback or keymap.rhs)) or key
+  vim.keymap.set(mode, mapping_prefix .. key, action, {silent = true, buffer = bufnr})
 
   vim.keymap.set(mode, key, function()
     autocmd.emit("MappingExecuted", mode, key)
 
     vim.api.nvim_feedkeys(utils.t(vim.v.count1 .. mapping_prefix .. key), mode, false)
-  end)
+  end, { silent = true, buffer = bufnr, desc = "better_n_remap" })
 end
 
-local register_keys = function()
+local remap_keys = function(bufnr)
   for key, mapping in pairs(mappings_table) do
     if mapping.cmdline then goto continue end
 
     for _, mode in ipairs({ "n", "v" }) do
-      register_key(mode, key)
+      remap_key(bufnr, mode, key)
     end
 
     ::continue::
   end
+end
+
+local register_keys = function()
+  vim.api.nvim_create_autocmd("BufEnter", {
+    callback = function(data)
+      vim.schedule(function()
+        pcall(remap_keys, data.buf)
+      end)
+    end
+  })
 end
 
 local store_baseline_keys = function()
@@ -116,5 +137,6 @@ end
 return {
   setup = setup,
   n = n,
+  register_keys = register_keys,
   shift_n = shift_n,
 }
