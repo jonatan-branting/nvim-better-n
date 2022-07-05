@@ -87,3 +87,8 @@ local mappings_table = {
 ```
 
 These can of course be overwritten as wanted.
+
+
+## Limitations
+Does not currently support rebinding visual mode commands.
+
