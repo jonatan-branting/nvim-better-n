@@ -4,7 +4,6 @@ local utils = require("better-n.utils")
 local mapping_prefix = "<plug>(better-n)"
 
 local latest_movement_cmd = {
-  mode = "n",
   key = "/"
 }
 
@@ -21,7 +20,7 @@ local mappings_table = {
 }
 
 local execute_map = function(map)
-  vim.api.nvim_feedkeys(utils.t(vim.v.count1 .. mapping_prefix .. map), latest_movement_cmd.mode, false)
+  vim.api.nvim_feedkeys(utils.t(vim.v.count1 .. mapping_prefix .. map), vim.fn.mode(), false)
 end
 
 local n = function()
@@ -36,7 +35,6 @@ local setup_autocmds = function(callback)
   autocmd.subscribe("MappingExecuted", function(mode, key)
     if callback then callback(mode, key) end
 
-    latest_movement_cmd.mode = mode
     latest_movement_cmd.key = key
   end)
 end
@@ -94,7 +92,9 @@ local remap_keys = function(bufnr)
   for key, mapping in pairs(mappings_table) do
     if mapping.cmdline then goto continue end
 
-    remap_key(bufnr, "n", key)
+    for _, mode in ipairs({ "n", "v" }) do
+      remap_key(bufnr, mode, key)
+    end
 
     ::continue::
   end
@@ -113,7 +113,9 @@ end
 local store_baseline_keys = function()
   -- Save important keybinds in <plug> bindings, for reuse
   for _, key in ipairs({ ";", ",", "n", "<s-n>" }) do
-    vim.keymap.set("n",  mapping_prefix .. key, key, {silent = true, nowait = true})
+    for _, mode in ipairs({ "n", "v" }) do
+      vim.keymap.set(mode, mapping_prefix .. key, key, {silent = true, nowait = true})
+    end
   end
 end
 
