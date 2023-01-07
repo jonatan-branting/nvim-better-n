@@ -92,7 +92,7 @@ local remap_keys = function(bufnr)
   for key, mapping in pairs(mappings_table) do
     if mapping.cmdline then goto continue end
 
-    for _, mode in ipairs({ "n", "v" }) do
+    for _, mode in ipairs({ "n", "x" }) do
       remap_key(bufnr, mode, key)
     end
 
@@ -113,7 +113,7 @@ end
 local store_baseline_keys = function()
   -- Save important keybinds in <plug> bindings, for reuse
   for _, key in ipairs({ ";", ",", "n", "<s-n>" }) do
-    for _, mode in ipairs({ "n", "v" }) do
+    for _, mode in ipairs({ "n", "x" }) do
       vim.keymap.set(mode, mapping_prefix .. key, key, {silent = true, nowait = true})
     end
   end
