@@ -20,7 +20,7 @@ local mappings_table = {
 }
 
 local execute_map = function(map)
-  vim.api.nvim_feedkeys(utils.t(vim.v.count1 .. mapping_prefix .. map), vim.fn.mode(), false)
+  vim.api.nvim_input(vim.v.count1 .. mapping_prefix .. map)
 end
 
 local n = function()
@@ -84,7 +84,7 @@ local remap_key = function(bufnr, mode, key)
   vim.keymap.set(mode, key, function()
     autocmd.emit("MappingExecuted", mode, key)
 
-    vim.api.nvim_feedkeys(utils.t(vim.v.count1 .. mapping_prefix .. key), mode, false)
+    vim.api.nvim_input(vim.v.count1 .. mapping_prefix .. key)
   end, { silent = true, buffer = bufnr, desc = "better_n_remap" })
 end
 
