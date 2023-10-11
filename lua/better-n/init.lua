@@ -44,6 +44,14 @@ function M.setup_autocmds(callback)
 
 		M.latest_movement_cmd.key = key
 	end)
+
+	vim.api.nvim_create_autocmd("BufEnter", {
+		callback = function(data)
+			vim.schedule(function()
+				M.remap_keys(data.buf)
+			end)
+		end
+	})
 end
 
 function M.register_cmdline()
@@ -79,17 +87,20 @@ function M.remap_key(bufnr, mode, key)
 	local keymap = M.keymap_from_key(bufnr, mode, key)
 	local action = (keymap and (keymap.callback or keymap.rhs)) or key
 
+	-- TODO: there has to be a better way!
+	if keymap and keymap.desc == "better-n" then
+		return
+	end
+
 	vim.keymap.set(mode, key, function()
 		autocmd.emit("MappingExecuted", mode, key)
-
-		M.set_last_movement_key(key)
 
 		if type(action) == "function" then
 			return action()
 		end
 
 		return vim.v.count1 .. action
-	end, { buffer = bufnr, expr = type(action) == "function" })
+	end, { buffer = bufnr, expr = type(action) ~= "function", desc = "better-n" })
 end
 
 function M.set_last_movement_key(key)
@@ -111,13 +122,9 @@ function M.remap_keys(bufnr)
 end
 
 function M.register_keys()
-	vim.api.nvim_create_autocmd("BufEnter", {
-		callback = function(data)
-			vim.schedule(function()
-				M.remap_keys(data.buf)
-			end)
-		end,
-	})
+	if vim.api.nvim_get_current_buf() ~= nil then
+		M.remap_keys(vim.api.nvim_get_current_buf())
+	end
 end
 
 function M.setup(opts)
