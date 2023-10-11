@@ -1,140 +1,134 @@
 local autocmd = require("better-n.autocmd")
 local utils = require("better-n.utils")
 
-local mapping_prefix = "<plug>(better-n)"
+local M = {}
 
-local latest_movement_cmd = {
-  key = "/"
+M.latest_movement_cmd = {
+	key = "/",
 }
 
-local mappings_table = {
-  ["*"] = {previous = "<s-n>", next = "n"},
-  ["#"] = {previous = "<s-n>", next = "n"},
-  ["f"] = {previous = ",", next = ";"},
-  ["t"] = {previous = ",", next = ";"},
-  ["F"] = {previous = ",", next = ";"},
-  ["T"] = {previous = ",", next = ";"},
+M.mappings_table = {
+	["*"] = { previous = "<s-n>", next = "n" },
+	["#"] = { previous = "<s-n>", next = "n" },
+	["f"] = { previous = ",", next = ";" },
+	["t"] = { previous = ",", next = ";" },
+	["F"] = { previous = ",", next = ";" },
+	["T"] = { previous = ",", next = ";" },
 
-  ["/"] = {previous = "<s-n>", next = "n", cmdline = true},
-  ["?"] = {previous = "<s-n>", next = "n", cmdline = true},
+	["/"] = { previous = "<s-n>", next = "n", cmdline = true },
+	["?"] = { previous = "<s-n>", next = "n", cmdline = true },
 }
 
-local execute_map = function(map)
-  vim.api.nvim_input(vim.v.count1 .. mapping_prefix .. map)
+function M.execute_map(map)
+	-- TODO do not assume it's bound to n/<s-n>
+	if map == "n" or map == "<s-n>" then
+		vim.api.nvim_feedkeys(utils.t(vim.v.count1 .. map), "nx", true)
+	else
+		vim.api.nvim_feedkeys(utils.t(vim.v.count1 .. map), "mx", true)
+	end
 end
 
-local n = function()
-  execute_map(mappings_table[latest_movement_cmd.key].next)
+function M.n()
+	M.execute_map(M.mappings_table[M.latest_movement_cmd.key].next)
 end
 
-local shift_n = function()
-  execute_map(mappings_table[latest_movement_cmd.key].previous)
+function M.shift_n()
+	M.execute_map(M.mappings_table[M.latest_movement_cmd.key].previous)
 end
 
-local setup_autocmds = function(callback)
-  autocmd.subscribe("MappingExecuted", function(mode, key)
-    if callback then callback(mode, key) end
+function M.setup_autocmds(callback)
+	autocmd.subscribe("MappingExecuted", function(mode, key)
+		if callback then
+			callback(mode, key)
+		end
 
-    latest_movement_cmd.key = key
-  end)
+		M.latest_movement_cmd.key = key
+	end)
 end
 
-local register_cmdline = function()
-  vim.api.nvim_create_autocmd("CmdlineLeave", {
-    callback = function()
-      local abort = vim.v.event.abort
-      local cmdline_char = vim.fn.expand("<afile>")
+function M.register_cmdline()
+	vim.api.nvim_create_autocmd("CmdlineLeave", {
+		callback = function()
+			local abort = vim.v.event.abort
+			local cmdline_char = vim.fn.expand("<afile>")
 
-      if not abort and utils.has_key(mappings_table, cmdline_char) then
-        autocmd.emit("MappingExecuted", "n", cmdline_char)
-      end
-    end
-  })
+			if not abort and utils.has_key(M.mappings_table, cmdline_char) then
+				M.set_last_movement_key(cmdline_char)
+			end
+		end,
+	})
 end
 
-local keymap_from_key = function(bufnr, mode, key)
-  local transformed_key = utils.t(key)
+function M.keymap_from_key(bufnr, mode, key)
+	local transformed_key = utils.t(key)
 
-  for _, keymap in ipairs(vim.api.nvim_buf_get_keymap(bufnr, mode)) do
-    if keymap.lhs == transformed_key then
-      return keymap
-    end
-  end
+	for _, keymap in ipairs(vim.api.nvim_buf_get_keymap(bufnr, mode)) do
+		if keymap.lhs == transformed_key then
+			return keymap
+		end
+	end
 
-  for _, keymap in ipairs(vim.api.nvim_get_keymap(mode)) do
-    if keymap.lhs == transformed_key then
-      return keymap
-    end
-  end
+	for _, keymap in ipairs(vim.api.nvim_get_keymap(mode)) do
+		if keymap.lhs == transformed_key then
+			return keymap
+		end
+	end
 end
 
-local remap_key = function(bufnr, mode, key)
-  -- Store the original keymap in a <plug>(better-n) keybind, so we can reuse the
-  -- functionality
-  local keymap = keymap_from_key(bufnr, mode, key)
+function M.remap_key(bufnr, mode, key)
+	local keymap = M.keymap_from_key(bufnr, mode, key)
+	local action = (keymap and (keymap.callback or keymap.rhs)) or key
 
-  -- Avoids recursively remapping itself forever
-  if keymap and keymap.desc == "better_n_remap" then
-    return
-  end
+	vim.keymap.set(mode, key, function()
+		autocmd.emit("MappingExecuted", mode, key)
 
-  local action = (keymap and (keymap.callback or keymap.rhs)) or key
-  vim.keymap.set(mode, mapping_prefix .. key, action, {silent = true, buffer = bufnr})
+		M.set_last_movement_key(key)
 
-  vim.keymap.set(mode, key, function()
-    autocmd.emit("MappingExecuted", mode, key)
+		if type(action) == "function" then
+			return action()
+		end
 
-    vim.api.nvim_input(vim.v.count1 .. mapping_prefix .. key)
-  end, { silent = true, buffer = bufnr, desc = "better_n_remap" })
+		return vim.v.count1 .. action
+	end, { buffer = bufnr, expr = type(action) == "function" })
 end
 
-local remap_keys = function(bufnr)
-  for key, mapping in pairs(mappings_table) do
-    if mapping.cmdline then goto continue end
-
-    for _, mode in ipairs({ "n", "x" }) do
-      remap_key(bufnr, mode, key)
-    end
-
-    ::continue::
-  end
+function M.set_last_movement_key(key)
+	M.latest_movement_cmd.key = key
 end
 
-local register_keys = function()
-  vim.api.nvim_create_autocmd("BufEnter", {
-    callback = function(data)
-      vim.schedule(function()
-        pcall(remap_keys, data.buf)
-      end)
-    end
-  })
+function M.remap_keys(bufnr)
+	for key, mapping in pairs(M.mappings_table) do
+		if mapping.cmdline then
+			goto continue
+		end
+
+		for _, mode in ipairs({ "n", "x" }) do
+			M.remap_key(bufnr, mode, key)
+		end
+
+		::continue::
+	end
 end
 
-local store_baseline_keys = function()
-  -- Save important keybinds in <plug> bindings, for reuse
-  for _, key in ipairs({ ";", ",", "n", "<s-n>" }) do
-    for _, mode in ipairs({ "n", "x" }) do
-      vim.keymap.set(mode, mapping_prefix .. key, key, {silent = true, nowait = true})
-    end
-  end
+function M.register_keys()
+	vim.api.nvim_create_autocmd("BufEnter", {
+		callback = function(data)
+			vim.schedule(function()
+				M.remap_keys(data.buf)
+			end)
+		end,
+	})
 end
 
-local setup = function(opts)
-  for key, value in pairs(opts.mappings or {}) do
-    mappings_table[key] = value
-  end
+function M.setup(opts)
+	for key, value in pairs(opts.mappings or {}) do
+		M.mappings_table[key] = value
+	end
 
-  setup_autocmds(opts.callbacks.mapping_executed)
+	M.setup_autocmds(opts.callbacks.mapping_executed)
 
-  store_baseline_keys()
-
-  register_cmdline()
-  register_keys()
+	M.register_cmdline()
+	M.register_keys()
 end
 
-return {
-  setup = setup,
-  n = n,
-  register_keys = register_keys,
-  shift_n = shift_n,
-}
+return M
