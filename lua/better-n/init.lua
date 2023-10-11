@@ -19,6 +19,9 @@ M.mappings_table = {
 	["?"] = { previous = "<s-n>", next = "n", cmdline = true },
 }
 
+vim.keymap.set({ "n", "x" }, "<Plug>(better-n)n", "n")
+vim.keymap.set({ "n", "x" }, "<Plug>(better-n)sn", "<s-n>")
+
 function M.execute_map(map)
 	-- TODO do not assume it's bound to n/<s-n>
 	if map == "n" or map == "<s-n>" then
@@ -29,11 +32,25 @@ function M.execute_map(map)
 end
 
 function M.n()
-	M.execute_map(M.mappings_table[M.latest_movement_cmd.key].next)
+	local key = M.mappings_table[M.latest_movement_cmd.key].next
+	if key == "n" then
+		return "<Plug>(better-n)n"
+	elseif key == "<s-n>" then
+		return "<Plug>(better-n)sn"
+	else
+		return key
+	end
 end
 
 function M.shift_n()
-	M.execute_map(M.mappings_table[M.latest_movement_cmd.key].previous)
+	local key = M.mappings_table[M.latest_movement_cmd.key].previous
+	if key == "n" then
+		return "<Plug>(better-n)n"
+	elseif key == "<s-n>" then
+		return "<Plug>(better-n)sn"
+	else
+		return key
+	end
 end
 
 function M.setup_autocmds(callback)
