@@ -7,6 +7,7 @@ M.latest_movement_cmd = {
 	key = "/",
 }
 
+-- TODO: I could simply instead store the actual function instead of this...
 M.mappings_table = {
 	["*"] = { previous = "<s-n>", next = "n" },
 	["#"] = { previous = "<s-n>", next = "n" },
@@ -19,24 +20,19 @@ M.mappings_table = {
 	["?"] = { previous = "<s-n>", next = "n", cmdline = true },
 }
 
+-- TODO sometimes have to be remap=true sometimes false,
+-- Solution:
+-- always use remap = true, but store all original mappings behind a prefix ?
+-- difficult to do in a generalized way though.
 vim.keymap.set({ "n", "x" }, "<Plug>(better-n)n", "n")
-vim.keymap.set({ "n", "x" }, "<Plug>(better-n)sn", "<s-n>")
-
-function M.execute_map(map)
-	-- TODO do not assume it's bound to n/<s-n>
-	if map == "n" or map == "<s-n>" then
-		vim.api.nvim_feedkeys(utils.t(vim.v.count1 .. map), "nx", true)
-	else
-		vim.api.nvim_feedkeys(utils.t(vim.v.count1 .. map), "mx", true)
-	end
-end
+vim.keymap.set({ "n", "x" }, "<Plug>(better-n)<s-n>", "<s-n>")
 
 function M.n()
 	local key = M.mappings_table[M.latest_movement_cmd.key].next
 	if key == "n" then
 		return "<Plug>(better-n)n"
 	elseif key == "<s-n>" then
-		return "<Plug>(better-n)sn"
+		return "<Plug>(better-n)<s-n>"
 	else
 		return key
 	end
@@ -47,7 +43,7 @@ function M.shift_n()
 	if key == "n" then
 		return "<Plug>(better-n)n"
 	elseif key == "<s-n>" then
-		return "<Plug>(better-n)sn"
+		return "<Plug>(better-n)<s-n>"
 	else
 		return key
 	end
@@ -104,7 +100,8 @@ function M.remap_key(bufnr, mode, key)
 	local keymap = M.keymap_from_key(bufnr, mode, key)
 	local action = (keymap and (keymap.callback or keymap.rhs)) or key
 
-	-- TODO: there has to be a better way!
+	-- The reason we have to do this is because
+	--
 	if keymap and keymap.desc == "better-n" then
 		return
 	end
@@ -140,7 +137,9 @@ end
 
 function M.register_keys()
 	if vim.api.nvim_get_current_buf() ~= nil then
-		M.remap_keys(vim.api.nvim_get_current_buf())
+		pcall(function()
+			M.remap_keys(vim.api.nvim_get_current_buf())
+		end)
 	end
 end
 
