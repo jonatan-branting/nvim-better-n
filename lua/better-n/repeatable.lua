@@ -25,7 +25,10 @@ function Repeatable:new(opts)
 end
 
 function Repeatable:_next()
-	self.register.last_key = self.key
+	vim.api.nvim_exec_autocmds("User", {
+		pattern = "BetterNNext",
+		data = { key = self.key, mode = vim.fn.mode() },
+	})
 
 	if type(self.next_action) == "function" then
 		return vim.schedule(self.next_action)
@@ -35,7 +38,10 @@ function Repeatable:_next()
 end
 
 function Repeatable:_previous()
-	self.register.last_key = self.key
+	vim.api.nvim_exec_autocmds("User", {
+		pattern = "BetterNPrevious",
+		data = { key = self.key, mode = vim.fn.mode() },
+	})
 
 	if type(self.previous_action) == "function" then
 		return vim.schedule(self.previous_action)
@@ -45,7 +51,10 @@ function Repeatable:_previous()
 end
 
 function Repeatable:_passthrough()
-	self.register.last_key = self.key
+	vim.api.nvim_exec_autocmds("User", {
+		pattern = "BetterNPassthrough",
+		data = { key = self.key, mode = vim.fn.mode() },
+	})
 
 	return self.key
 end

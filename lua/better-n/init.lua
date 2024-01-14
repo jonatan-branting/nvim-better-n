@@ -14,15 +14,15 @@ function M.session()
 end
 
 function M.setup(opts)
-	local defaults = Config.get_default_config()
+	local defaults = Config.get_default_legacy_config()
 
 	if opts.disable_default_mappings then
-		defaults.opts.mappings = {}
+		defaults.mappings = {}
 	end
 
-	opts = vim.tbl_deep_extend("force", defaults.opts, opts)
+	opts = vim.tbl_deep_extend("force", defaults, opts)
 
-	Config.setup_mappings(opts.mappings)
+	Config.apply_legacy_config(opts)
 
 	return M
 end

@@ -13,8 +13,6 @@ function Register:new()
 	setmetatable(instance, self)
 	self.__index = self
 
-	-- https://stackoverflow.com/questions/27426704/lua-5-1-workaround-for-gc-metamethod-for-tables
-	-- TODO: has to be cleaned up if this is unloaded
 	vim.api.nvim_create_autocmd("CmdlineLeave", {
 		group = augroup,
 		callback = function()
@@ -24,6 +22,20 @@ function Register:new()
 			if not abort and instance.repeatables[cmdline_char] ~= nil then
 				instance.last_key = cmdline_char
 			end
+		end,
+	})
+
+	vim.api.nvim_create_autocmd("User", {
+		group = augroup,
+		pattern = {
+			"BetterNNext",
+			"BetterNPrevious",
+			"BetterNPassthrough",
+		},
+		callback = function(args)
+			local key = args.data.key
+
+			instance.last_key = key
 		end,
 	})
 
