@@ -26,7 +26,7 @@ end
 
 function Repeatable:_next()
 	vim.api.nvim_exec_autocmds("User", {
-		pattern = "BetterNNext",
+		pattern = { "BetterNNext", "BetterNMappingExecuted" },
 		data = { key = self.key, mode = vim.fn.mode() },
 	})
 
@@ -39,7 +39,7 @@ end
 
 function Repeatable:_previous()
 	vim.api.nvim_exec_autocmds("User", {
-		pattern = "BetterNPrevious",
+		pattern = { "BetterNPrevious", "BetterNMappingExecuted" },
 		data = { key = self.key, mode = vim.fn.mode() },
 	})
 
@@ -52,7 +52,7 @@ end
 
 function Repeatable:_passthrough()
 	vim.api.nvim_exec_autocmds("User", {
-		pattern = "BetterNPassthrough",
+		pattern = { "BetterNPassthrough", "BetterNMappingExecuted" },
 		data = { key = self.key, mode = vim.fn.mode() },
 	})
 

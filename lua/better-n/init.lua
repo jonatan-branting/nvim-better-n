@@ -35,6 +35,14 @@ function M.previous()
 	return M.session():previous()
 end
 
+function M.n()
+	return M.next()
+end
+
+function M.shift_n()
+	return M.previous()
+end
+
 function M.create(...)
 	return M.session():create(...)
 end

@@ -27,11 +27,7 @@ function Register:new()
 
 	vim.api.nvim_create_autocmd("User", {
 		group = augroup,
-		pattern = {
-			"BetterNNext",
-			"BetterNPrevious",
-			"BetterNPassthrough",
-		},
+		pattern = { "BetterNMappingExecuted" },
 		callback = function(args)
 			local key = args.data.key
 

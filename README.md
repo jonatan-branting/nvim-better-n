@@ -16,7 +16,7 @@ It does this by rebinding `n` (which is a rather convenient binding), so that
 it used for multiple different movement commands, in the same vein `.` repeats
 action commands.
 
-For example, if we jump to the next hunk, using `<leader>hn`, we can repeat
+For example, if we jump to the next hunk, using `]h`, we can repeat
 that command using `n`, allowing for far easier "scrolling" using that motion
 without coming up with a bind that is easier to repeat.
 
@@ -36,58 +36,41 @@ use "jonatan-branting/nvim-better-n"
 ## Setup
 
 ```lua
-require("better-n").setup {
-  callbacks = {
-    mapping_executed = function(_mode, _key)
-      -- Clear highlighting, indicating that `n` will not goto the next
-      -- highlighted search-term
-      vim.cmd [[ nohl ]]
-    end
-  },
-  mappings = {
-    -- I want `n` to always go forward, and `<s-n>` to always go backwards
-    ["#"] = {previous = "n", next ="<s-n>"},
-    ["F"] = {previous = ";", next = ","},
-    ["T"] = {previous = ";", next = ","},
-
-    -- Setting `cmdline = true` ensures that `n` will only be 
-    -- overwritten if the search command is succesfully executed
-    ["?"] = {previous = "n", next ="<s-n>", cmdline = true},
-
-    -- I have <leader>hn/hp bound to git-hunk-next/prev
-    ["<leader>hn"] = {previous = "<leader>hp", next = "<leader>hn"},
-    ["<leader>hp"] = {previous = "<leader>hp", next = "<leader>hn"},
-
-    -- I have <leader>bn/bp bound to buffer-next/prev
-    ["<leader>bn"] = {previous = "<leader>bp", next = "<leader>bn"},
-    ["<leader>bp"] = {previous = "<leader>bp", next = "<leader>bn"},
+require("better-n").setup(
+  {
+    -- These will be bound on load
+    mappings = {
+      ["/"] = { next = "n", previous = "<s-n>", cmdline = true },
+      ["?"] = { next = "n", previous = "<s-n>", cmdline = true },
+      ["#"] = { next = "n", previous = "<s-n>", cmdline = true },
+      ["*"] = { next = "n", previous = "<s-n>", cmdline = true },
+      ["f"] = { next = ";", previous = "," },
+      ["t"] = { next = ";", previous = "," },
+      ["F"] = { next = ";", previous = "," },
+      ["T"] = { next = ";", previous = "," },
+    },
   }
-}
+)
+
+vim.nvim_create_autocmd("User", {
+  pattern = "BetterNMappingExecuted",
+  callback = function(args)
+    -- args.data.key and args.data.mode are available here
+  end
+})
 
 -- You will have to rebind `n` yourself
-vim.keymap.set("n", "n", require("better-n").n, {nowait = true})
-vim.keymap.set("n", "<s-n>", require("better-n").shift_n, {nowait = true})
+vim.keymap.set({ "n", "x" } "n", require("better-n").next, {expr = true, nowait = true})
+vim.keymap.set({ "n", "x" }, "<s-n>", require("better-n").previous, {expr = true, nowait = true})
+
+-- Create repeatable mappings using, which is useful when registering dynamic mappings to be repeatable:
+local hunk_navigation = require("better-n").create(
+  {
+    next =  require("gitsigns").next_hunk,
+    previous = require("gitsigns").prev_hunk
+  }
+)
+
+vim.keymap.set({ "n", "x"}, "]h", hunk_navigation.next)
+vim.keymap.set({ "n", "x"}, "[h", hunk_navigation.previous)
 ```
-
-## Defaults
-By default, `nvim-better-n` maps the following bindings:
-
-```lua
-local mappings_table = {
-  ["*"] = {previous = "<s-n>", next = "n"},
-  ["#"] = {previous = "<s-n>", next = "n"},
-  ["f"] = {previous = ",", next = ";"},
-  ["t"] = {previous = ",", next = ";"},
-  ["F"] = {previous = ",", next = ";"},
-  ["T"] = {previous = ",", next = ";"},
-
-  ["/"] = {previous = "<s-n>", next = "n", cmdline = true},
-  ["?"] = {previous = "<s-n>", next = "n", cmdline = true},
-}
-```
-
-These can of course be overwritten as wanted.
-
-
-## Limitations
-Does not currently support rebinding visual mode commands.
