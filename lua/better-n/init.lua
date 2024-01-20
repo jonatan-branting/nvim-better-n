@@ -3,7 +3,7 @@ local Config = require("better-n.config")
 
 local M = {}
 
-function M.session()
+function M.instance()
 	if _G.better_n_register ~= nil then
 		return _G.better_n_register
 	end
@@ -28,11 +28,11 @@ function M.setup(opts)
 end
 
 function M.next()
-	return M.session():next()
+	return M.instance():next()
 end
 
 function M.previous()
-	return M.session():previous()
+	return M.instance():previous()
 end
 
 function M.n()
@@ -44,11 +44,11 @@ function M.shift_n()
 end
 
 function M.create(...)
-	return M.session():create(...)
+	return M.instance():create(...)
 end
 
 function M.register(...)
-	return M.session():register(...)
+	return M.instance():register(...)
 end
 
 return M
