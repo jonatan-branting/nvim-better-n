@@ -3,7 +3,11 @@ local P = {}
 
 function Config.get_default_legacy_config()
 	return {
-		callbacks = {},
+		callbacks = {
+			mapping_executed = function(_key, _mode)
+				-- noop
+			end,
+		},
 		mappings = {
 			["/"] = { next = "n", previous = "<s-n>", cmdline = true },
 			["?"] = { next = "n", previous = "<s-n>", cmdline = true },
@@ -56,7 +60,9 @@ function P._setup_autocmds(callbacks)
 			"BetterNPassthrough"
 		},
 		callback = function(args)
-			callbacks.mapping_executed(args.data.key, args.data.mode)
+			vim.schedule(function()
+				callbacks.mapping_executed(args.data.key, args.data.mode)
+			end)
 		end
 	})
 end
