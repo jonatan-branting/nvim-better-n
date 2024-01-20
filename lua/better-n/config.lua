@@ -32,13 +32,11 @@ function P._setup_mappings(mappings)
 	end
 
 	for key, mapping in pairs(mappings) do
-		local repeatable = require("better-n").create(
-			{
-				key = key,
-				next = mapping.next,
-				previous = mapping.previous
-			}
-		)
+		local repeatable = require("better-n").create({
+			key = key,
+			next = mapping.next,
+			previous = mapping.previous,
+		})
 
 		if not mapping.cmdline then
 			vim.keymap.set({ "n", "x" }, repeatable.key, repeatable.passthrough, { expr = true, silent = true })
@@ -57,13 +55,13 @@ function P._setup_autocmds(callbacks)
 		pattern = {
 			"BetterNNext",
 			"BetterNPrevious",
-			"BetterNPassthrough"
+			"BetterNPassthrough",
 		},
 		callback = function(args)
 			vim.schedule(function()
 				callbacks.mapping_executed(args.data.key, args.data.mode)
 			end)
-		end
+		end,
 	})
 end
 
