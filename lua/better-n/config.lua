@@ -1,68 +1,41 @@
 local Config = {}
 local P = {}
 
-function Config.get_default_legacy_config()
+function P._setup_default_mappings()
+	local f = require("better-n").create({ key = "f", next = ";", previous = "," })
+	vim.keymap.set({ "n", "x" }, f.key, f.passthrough, { expr = true, silent = true })
+	local F = require("better-n").create({ key = "f", next = ";", previous = "," })
+	vim.keymap.set({ "n", "x" }, F.key, F.passthrough, { expr = true, silent = true })
+	local t = require("better-n").create({ key = "t", next = ";", previous = "," })
+	vim.keymap.set({ "n", "x" }, t.key, t.passthrough, { expr = true, silent = true })
+	local T = require("better-n").create({ key = "t", next = ";", previous = "," })
+	vim.keymap.set({ "n", "x" }, T.key, T.passthrough, { expr = true, silent = true })
+
+	require("better-n").create({ key = "/", next = "n", previous = "<s-n>" })
+	require("better-n").create({ key = "?", next = "n", previous = "<s-n>" })
+	require("better-n").create({ key = "*", next = "n", previous = "<s-n>" })
+	require("better-n").create({ key = "#", next = "n", previous = "<s-n>" })
+
+	vim.keymap.set({ "n", "x" }, "n", require("better-n").next, { expr = true, silent = true, nowait = true })
+	vim.keymap.set({ "n", "x" }, "n", require("better-n").previous, { expr = true, silent = true, nowait = true })
+end
+
+function Config.get_default_config()
 	return {
+		disable_default_mappings = false,
+		-- @deprecated
 		callbacks = {
-			mapping_executed = function(_key, _mode)
-				-- noop
-			end,
+			mapping_executed = nil,
 		},
-		mappings = {
-			["/"] = { next = "n", previous = "<s-n>", cmdline = true },
-			["?"] = { next = "n", previous = "<s-n>", cmdline = true },
-			["#"] = { next = "n", previous = "<s-n>", cmdline = true },
-			["*"] = { next = "n", previous = "<s-n>", cmdline = true },
-			["f"] = { next = ";", previous = "," },
-			["t"] = { next = ";", previous = "," },
-			["F"] = { next = ";", previous = "," },
-			["T"] = { next = ";", previous = "," },
-		},
+		-- @deprecated
+		mappings = {},
 	}
 end
 
-function Config.apply_legacy_config(opts)
-	P._setup_mappings(opts.mappings)
-	P._setup_autocmds(opts.callbacks)
-end
-
-function P._setup_mappings(mappings)
-	if not mappings then
-		return
+function Config.apply_config(config)
+	if not config.disable_default_mappings then
+		P._setup_default_mappings()
 	end
-
-	for key, mapping in pairs(mappings) do
-		local repeatable = require("better-n").create({
-			key = key,
-			next = mapping.next,
-			previous = mapping.previous,
-		})
-
-		if not mapping.cmdline then
-			vim.keymap.set({ "n", "x" }, repeatable.key, repeatable.passthrough, { expr = true, silent = true })
-		end
-	end
-end
-
--- This is only here for temporary backwards compatibility
--- Previously only `mapping_executed` was supported.
-function P._setup_autocmds(callbacks)
-	if not callbacks.mapping_executed then
-		return
-	end
-
-	vim.api.nvim_create_autocmd("User", {
-		pattern = {
-			"BetterNNext",
-			"BetterNPrevious",
-			"BetterNPassthrough",
-		},
-		callback = function(args)
-			vim.schedule(function()
-				callbacks.mapping_executed(args.data.key, args.data.mode)
-			end)
-		end,
-	})
 end
 
 return Config

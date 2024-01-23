@@ -51,12 +51,6 @@ function Register:create(opts)
 	return self.repeatables[key]
 end
 
-function Register:register(...)
-	self:create(...)
-
-	return self
-end
-
 function Register:next()
 	if self.last_key == nil then
 		return

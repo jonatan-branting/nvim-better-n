@@ -14,15 +14,28 @@ function M.instance()
 end
 
 function M.setup(opts)
-	local defaults = Config.get_default_legacy_config()
-
-	if opts.disable_default_mappings then
-		defaults.mappings = {}
+	if opts.mappings then
+		vim.deprecate(
+			"opts.mappings is deprecated",
+			'create mappings manually using `require("better-n").create({ next = ..., previous = ... })`',
+			"HEAD",
+			"nvim-better-n",
+			false
+		)
 	end
+	if opts.callbacks then
+		vim.deprecate(
+			"opts.callbacks",
+			"Use `vim.api.nvim_create_autocmd` to listen to the User event with pattern `BetterNMappingExecuted` instead",
+			"HEAD",
+			"nvim-better-n",
+			false
+		)
+	end
+	local defaults = Config.get_default_config()
+	local config = vim.tbl_deep_extend("force", defaults, opts)
 
-	opts = vim.tbl_deep_extend("force", defaults, opts)
-
-	Config.apply_legacy_config(opts)
+	Config.apply_config(config)
 
 	return M
 end
@@ -45,10 +58,6 @@ end
 
 function M.create(...)
 	return M.instance():create(...)
-end
-
-function M.register(...)
-	return M.instance():register(...)
 end
 
 return M
