@@ -39,17 +39,9 @@ use "jonatan-branting/nvim-better-n"
 require("better-n").setup(
   {
     -- These are default values, which can be omitted.
+    -- By default, the following mappings are made repeatable using `n` and `<S-n>`:
+    -- `f`, `F`, `t`, `T`, `*`, `#`, `/`, `?`
     disable_default_mappings = false,
-    mappings = {
-      ["/"] = { next = "n", previous = "<s-n>", cmdline = true },
-      ["?"] = { next = "n", previous = "<s-n>", cmdline = true },
-      ["#"] = { next = "n", previous = "<s-n>", cmdline = true },
-      ["*"] = { next = "n", previous = "<s-n>", cmdline = true },
-      ["f"] = { next = ";", previous = "," },
-      ["t"] = { next = ";", previous = "," },
-      ["F"] = { next = ";", previous = "," },
-      ["T"] = { next = ";", previous = "," },
-    },
   }
 )
 
