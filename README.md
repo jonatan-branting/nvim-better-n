@@ -52,7 +52,7 @@ vim.nvim_create_autocmd("User", {
   end
 })
 
--- You can also create repeatable mappings using, which is useful when registering dynamic mappings to be repeatable:
+-- You create repeatable mappings like this:
 local hunk_navigation = require("better-n").create(
   {
     next =  require("gitsigns").next_hunk,
