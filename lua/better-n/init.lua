@@ -1,140 +1,63 @@
-local autocmd = require("better-n.autocmd")
-local utils = require("better-n.utils")
+local Register = require("better-n.register")
+local Config = require("better-n.config")
 
-local mapping_prefix = "<plug>(better-n)"
+local M = {}
 
-local latest_movement_cmd = {
-  key = "/"
-}
+function M.instance()
+	if _G.better_n_register ~= nil then
+		return _G.better_n_register
+	end
 
-local mappings_table = {
-  ["*"] = {previous = "<s-n>", next = "n"},
-  ["#"] = {previous = "<s-n>", next = "n"},
-  ["f"] = {previous = ",", next = ";"},
-  ["t"] = {previous = ",", next = ";"},
-  ["F"] = {previous = ",", next = ";"},
-  ["T"] = {previous = ",", next = ";"},
+	_G.better_n_register = Register:new()
 
-  ["/"] = {previous = "<s-n>", next = "n", cmdline = true},
-  ["?"] = {previous = "<s-n>", next = "n", cmdline = true},
-}
-
-local execute_map = function(map)
-  vim.api.nvim_feedkeys(utils.t(vim.v.count1 .. mapping_prefix .. map), vim.fn.mode(), false)
+	return _G.better_n_register
 end
 
-local n = function()
-  execute_map(mappings_table[latest_movement_cmd.key].next)
+function M.setup(opts)
+	if opts.mappings then
+		vim.deprecate(
+			"opts.mappings is deprecated",
+			'create mappings manually using `require("better-n").create({ next = ..., previous = ... })`',
+			"HEAD",
+			"nvim-better-n",
+			false
+		)
+	end
+	if opts.callbacks then
+		vim.deprecate(
+			"opts.callbacks",
+			"Use `vim.api.nvim_create_autocmd` to listen to the User event with pattern `BetterNMappingExecuted` instead",
+			"HEAD",
+			"nvim-better-n",
+			false
+		)
+	end
+	local defaults = Config.get_default_config()
+	local config = vim.tbl_deep_extend("force", defaults, opts)
+
+	Config.apply_config(config)
+
+	return M
 end
 
-local shift_n = function()
-  execute_map(mappings_table[latest_movement_cmd.key].previous)
+function M.next()
+	return M.instance():next()
 end
 
-local setup_autocmds = function(callback)
-  autocmd.subscribe("MappingExecuted", function(mode, key)
-    if callback then callback(mode, key) end
-
-    latest_movement_cmd.key = key
-  end)
+function M.previous()
+	return M.instance():previous()
 end
 
-local register_cmdline = function()
-  vim.api.nvim_create_autocmd("CmdlineLeave", {
-    callback = function()
-      local abort = vim.v.event.abort
-      local cmdline_char = vim.fn.expand("<afile>")
-
-      if not abort and utils.has_key(mappings_table, cmdline_char) then
-        autocmd.emit("MappingExecuted", "n", cmdline_char)
-      end
-    end
-  })
+function M.n()
+	return M.next()
 end
 
-local keymap_from_key = function(bufnr, mode, key)
-  local transformed_key = utils.t(key)
-
-  for _, keymap in ipairs(vim.api.nvim_buf_get_keymap(bufnr, mode)) do
-    if keymap.lhs == transformed_key then
-      return keymap
-    end
-  end
-
-  for _, keymap in ipairs(vim.api.nvim_get_keymap(mode)) do
-    if keymap.lhs == transformed_key then
-      return keymap
-    end
-  end
+function M.shift_n()
+	return M.previous()
 end
 
-local remap_key = function(bufnr, mode, key)
-  -- Store the original keymap in a <plug>(better-n) keybind, so we can reuse the
-  -- functionality
-  local keymap = keymap_from_key(bufnr, mode, key)
-
-  -- Avoids recursively remapping itself forever
-  if keymap and keymap.desc == "better_n_remap" then
-    return
-  end
-
-  local action = (keymap and (keymap.callback or keymap.rhs)) or key
-  vim.keymap.set(mode, mapping_prefix .. key, action, {silent = true, buffer = bufnr})
-
-  vim.keymap.set(mode, key, function()
-    autocmd.emit("MappingExecuted", mode, key)
-
-    vim.api.nvim_feedkeys(utils.t(vim.v.count1 .. mapping_prefix .. key), mode, false)
-  end, { silent = true, buffer = bufnr, desc = "better_n_remap" })
+function M.create(...)
+	return M.instance():create(...)
 end
 
-local remap_keys = function(bufnr)
-  for key, mapping in pairs(mappings_table) do
-    if mapping.cmdline then goto continue end
-
-    for _, mode in ipairs({ "n", "x" }) do
-      remap_key(bufnr, mode, key)
-    end
-
-    ::continue::
-  end
-end
-
-local register_keys = function()
-  vim.api.nvim_create_autocmd("BufEnter", {
-    callback = function(data)
-      vim.schedule(function()
-        pcall(remap_keys, data.buf)
-      end)
-    end
-  })
-end
-
-local store_baseline_keys = function()
-  -- Save important keybinds in <plug> bindings, for reuse
-  for _, key in ipairs({ ";", ",", "n", "<s-n>" }) do
-    for _, mode in ipairs({ "n", "x" }) do
-      vim.keymap.set(mode, mapping_prefix .. key, key, {silent = true, nowait = true})
-    end
-  end
-end
-
-local setup = function(opts)
-  for key, value in pairs(opts.mappings or {}) do
-    mappings_table[key] = value
-  end
-
-  setup_autocmds(opts.callbacks.mapping_executed)
-
-  store_baseline_keys()
-
-  register_cmdline()
-  register_keys()
-end
-
-return {
-  setup = setup,
-  n = n,
-  register_keys = register_keys,
-  shift_n = shift_n,
-}
+return M
