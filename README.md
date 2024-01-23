@@ -38,7 +38,8 @@ use "jonatan-branting/nvim-better-n"
 ```lua
 require("better-n").setup(
   {
-    -- These will be bound on load
+    -- These are default values, which can be omitted.
+    disable_default_mappings = false,
     mappings = {
       ["/"] = { next = "n", previous = "<s-n>", cmdline = true },
       ["?"] = { next = "n", previous = "<s-n>", cmdline = true },
@@ -59,11 +60,7 @@ vim.nvim_create_autocmd("User", {
   end
 })
 
--- You will have to rebind `n` yourself
-vim.keymap.set({ "n", "x" } "n", require("better-n").next, {expr = true, nowait = true})
-vim.keymap.set({ "n", "x" }, "<s-n>", require("better-n").previous, {expr = true, nowait = true})
-
--- Create repeatable mappings using, which is useful when registering dynamic mappings to be repeatable:
+-- You can also create repeatable mappings using, which is useful when registering dynamic mappings to be repeatable:
 local hunk_navigation = require("better-n").create(
   {
     next =  require("gitsigns").next_hunk,
