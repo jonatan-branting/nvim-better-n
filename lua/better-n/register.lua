@@ -41,21 +41,14 @@ end
 function Register:create(opts)
 	local key = opts.key or self:_generate_key()
 
-	vim.keymap.set({ "n", "x" }, key, function ()
-		vim.api.nvim_exec_autocmds("User", {
-    		pattern = { "BetterNNext", "BetterNMappingExecuted" },
-    		data = { key = key, mode = vim.fn.mode() },
-		})
-
-		return vim.v.count1 .. key
-	end, { expr = true, silent = true })
-
 	self.repeatables[key] = Repeatable:new({
 		register = self,
 		key = key,
 		next = opts.next,
 		previous = opts.previous,
 	})
+
+	vim.keymap.set({ "n", "x" }, key, self.repeatables[key].passthrough, { expr = true, silent = true })
 
 	return self.repeatables[key]
 end
