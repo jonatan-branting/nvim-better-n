@@ -17,7 +17,7 @@ function P._setup_default_mappings()
 	require("better-n").create({ key = "#", next = "n", previous = "<s-n>" })
 
 	vim.keymap.set({ "n", "x" }, "n", require("better-n").next, { expr = true, silent = true, nowait = true })
-	vim.keymap.set({ "n", "x" }, "n", require("better-n").previous, { expr = true, silent = true, nowait = true })
+	vim.keymap.set({ "n", "x" }, "<s-n>", require("better-n").previous, { expr = true, silent = true, nowait = true })
 end
 
 function Config.get_default_config()
