@@ -48,8 +48,6 @@ function Register:create(opts)
 		previous = opts.previous,
 	})
 
-	vim.keymap.set({ "n", "x" }, key, self.repeatables[key].passthrough, { expr = true, silent = true })
-
 	return self.repeatables[key]
 end
 
