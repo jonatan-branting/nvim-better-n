@@ -60,6 +60,6 @@ local hunk_navigation = require("better-n").create(
   }
 )
 
-vim.keymap.set({ "n", "x"}, "]h", hunk_navigation.next)
-vim.keymap.set({ "n", "x"}, "[h", hunk_navigation.previous)
+vim.keymap.set({ "n", "x" }, "]h", hunk_navigation.next)
+vim.keymap.set({ "n", "x" }, "[h", hunk_navigation.previous)
 ```
