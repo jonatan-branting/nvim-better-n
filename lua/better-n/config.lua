@@ -10,13 +10,13 @@ function P._setup_default_mappings()
 	local f = better_n.create({ key = "f", next = ";", previous = "," })
 	vim.keymap.set({ "n", "x" }, f.key, f.passthrough, { expr = true, silent = true })
 
-	local F = better_n.create({ key = "f", next = ";", previous = "," })
+	local F = better_n.create({ key = "F", next = ";", previous = "," })
 	vim.keymap.set({ "n", "x" }, F.key, F.passthrough, { expr = true, silent = true })
 
 	local t = better_n.create({ key = "t", next = ";", previous = "," })
 	vim.keymap.set({ "n", "x" }, t.key, t.passthrough, { expr = true, silent = true })
 
-	local T = better_n.create({ key = "t", next = ";", previous = "," })
+	local T = better_n.create({ key = "T", next = ";", previous = "," })
 	vim.keymap.set({ "n", "x" }, T.key, T.passthrough, { expr = true, silent = true })
 
 	local asterisk = better_n.create({ key = "*", next = "n", previous = "<s-n>" })
