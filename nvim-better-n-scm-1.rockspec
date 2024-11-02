@@ -4,10 +4,11 @@ version = "scm-1"
 
 dependencies = {
   "lua == 5.1",
-}
 
-test_dependencies = {
-  "lua == 5.1",
+  -- These are only needed for testing, but `test_dependencies` cannot
+  -- be automatically installed based on the listing here, which makes
+  -- that section all but useless.
+  "nlua",
   "busted"
 }
 
@@ -17,10 +18,5 @@ source = {
 
 build = {
   type = "builtin",
-  copy_directories = {
-    "plugin",
-    "parser",
-    "doc"
-  },
 }
 
