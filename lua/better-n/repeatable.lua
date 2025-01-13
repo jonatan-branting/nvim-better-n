@@ -6,10 +6,16 @@ function Repeatable:new(opts)
     key = opts.key or error("opts.trigger is required" .. vim.inspect(opts)),
     next_action = opts.next or error("opts.next is required" .. vim.inspect(opts)),
     previous_action = opts.previous or error("opts.previous is required" .. vim.inspect(opts)),
+    mode = opts.mode or { "n" },
+    initiate = opts.initiate or opts.next
   }
 
   setmetatable(instance, self)
   self.__index = self
+
+  instance.passthrough_key = "<Plug>(better-n-#" .. opts.number .. ")"
+  instance.next_key = "<Plug>(better-n-#" .. opts.number .. "-next)"
+  instance.previous_key = "<Plug>(better-n-#" .. opts.number .. "-previous)"
 
   instance.passthrough = function()
     return instance:_passthrough()
@@ -56,7 +62,7 @@ function Repeatable:_passthrough()
     data = { key = self.key, mode = vim.fn.mode() },
   })
 
-  return self.key
+  return self.initiate
 end
 
 return Repeatable

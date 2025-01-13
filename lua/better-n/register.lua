@@ -39,16 +39,50 @@ function Register:new()
 end
 
 function Register:create(opts)
-  local key = opts.key or self:_generate_key()
+  local number = self:_num_repeatables()
+  local key = opts.key or self:_generate_key(number)
 
-  self.repeatables[key] = Repeatable:new({
+  local repeatable = Repeatable:new({
     register = self,
+    number = number,
+    initiate = opts.initiate,
     key = key,
     next = opts.next,
     previous = opts.previous,
+    mode = opts.mode
   })
 
-  return self.repeatables[key]
+  vim.keymap.set(
+    repeatable.mode,
+    repeatable.passthrough_key,
+    repeatable.passthrough,
+    {
+      expr = true,
+      silent = true
+    }
+  )
+  vim.keymap.set(
+    repeatable.mode,
+    repeatable.next_key,
+    repeatable.next,
+    {
+      expr = true,
+      silent = true
+    }
+  )
+  vim.keymap.set(
+    repeatable.mode,
+    repeatable.previous_key,
+    repeatable.previous,
+    {
+      expr = true,
+      silent = true
+    }
+  )
+
+  self.repeatables[key] = repeatable
+
+  return repeatable
 end
 
 function Register:next()
@@ -67,8 +101,8 @@ function Register:previous()
   return self.repeatables[self.last_key]:previous()
 end
 
-function Register:_generate_key()
-  return "<Plug>(Register)#" .. self:_num_repeatables()
+function Register:_generate_key(number)
+  return "<Plug>(better-n-#" .. number .. ")"
 end
 
 -- Workaround for # only working for array-based tables

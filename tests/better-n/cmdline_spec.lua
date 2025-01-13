@@ -1,6 +1,9 @@
-require("tests")
+local t = require("../helper")
+local better_n = require("better-n")
 
-local t = require("tests.helper")
+better_n.setup({})
+vim.keymap.set({ "n", "x" }, "n", better_n.next, { nowait = true, remap = true, expr = true })
+vim.keymap.set({ "n", "x" }, "<s-n>", better_n.previous, { nowait = true, remap = true, expr = true })
 
 describe("macros", function()
   before_each(function()
