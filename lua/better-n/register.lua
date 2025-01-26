@@ -73,12 +73,7 @@ end
 
 -- Workaround for # only working for array-based tables
 function Register:_num_repeatables()
-  local count = 0
-  for _ in pairs(self.repeatables) do
-    count = count + 1
-  end
-
-  return count
+  return vim.tbl_count(self.repeatables)
 end
 
 return Register
