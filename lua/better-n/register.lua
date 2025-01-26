@@ -6,7 +6,7 @@ local Register = {}
 
 function Register:new()
   local instance = {
-    last_key = nil,
+    last_repeatable_id = nil,
     repeatables = {},
   }
 
@@ -20,7 +20,7 @@ function Register:new()
       local cmdline_char = vim.fn.expand("<afile>")
 
       if not abort and instance.repeatables[cmdline_char] ~= nil then
-        instance.last_key = cmdline_char
+        instance.last_repeatable_id = cmdline_char
       end
     end,
   })
@@ -29,9 +29,9 @@ function Register:new()
     group = augroup,
     pattern = { "BetterNMappingExecuted" },
     callback = function(args)
-      local key = args.data.key
+      local repeatable_id = args.data.repeatable_id
 
-      instance.last_key = key
+      instance.last_repeatable_id = repeatable_id
     end,
   })
 
@@ -39,36 +39,34 @@ function Register:new()
 end
 
 function Register:create(opts)
-  local key = opts.key or self:_generate_key()
-
-  self.repeatables[key] = Repeatable:new({
+  local repeatable = Repeatable:new({
     register = self,
-    key = key,
     next = opts.next,
     previous = opts.previous,
+    passthrough = opts.initiate or opts.key or opts.next,
+    mode = opts.mode,
+    id = opts.id,
   })
 
-  return self.repeatables[key]
+  self.repeatables[repeatable.id] = repeatable
+
+  return repeatable
 end
 
 function Register:next()
-  if self.last_key == nil then
+  if self.last_repeatable_id == nil then
     return
   end
 
-  return self.repeatables[self.last_key]:next()
+  return self.repeatables[self.last_repeatable_id]:next()
 end
 
 function Register:previous()
-  if self.last_key == nil then
+  if self.last_repeatable_id == nil then
     return
   end
 
-  return self.repeatables[self.last_key]:previous()
-end
-
-function Register:_generate_key()
-  return "<Plug>(Register)#" .. self:_num_repeatables()
+  return self.repeatables[self.last_repeatable_id]:previous()
 end
 
 -- Workaround for # only working for array-based tables
