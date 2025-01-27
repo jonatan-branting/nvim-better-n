@@ -48,6 +48,10 @@ function Register:create(opts)
     id = opts.id,
   })
 
+  vim.keymap.set(repeatable.mode, repeatable.passthrough_key, repeatable.passthrough, { expr = true, silent = true })
+  vim.keymap.set(repeatable.mode, repeatable.next_key, repeatable.next, { expr = true, silent = true })
+  vim.keymap.set(repeatable.mode, repeatable.previous_key, repeatable.previous, { expr = true, silent = true })
+
   self.repeatables[repeatable.id] = repeatable
 
   return repeatable
