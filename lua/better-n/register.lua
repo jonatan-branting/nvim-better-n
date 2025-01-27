@@ -42,7 +42,7 @@ function Register:create(opts)
   local repeatable = Repeatable:new({
     register = self,
     next = opts.next,
-    previous = opts.previous,
+    previous = opts.previous or opts.prev,
     passthrough = opts.initiate or opts.key or opts.next,
     mode = opts.mode,
     id = opts.id,
