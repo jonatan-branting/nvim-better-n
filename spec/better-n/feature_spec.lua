@@ -2,8 +2,8 @@ local t = require("../helper")
 local better_n = require("better-n")
 
 better_n.setup({})
-vim.keymap.set({ "n", "x" }, "n", better_n.next, { nowait = true, remap = true, expr = true })
-vim.keymap.set({ "n", "x" }, "<s-n>", better_n.previous, { nowait = true, remap = true, expr = true })
+vim.keymap.set({ "n", "x" }, "n", better_n.next, { nowait = true, expr = true })
+vim.keymap.set({ "n", "x" }, "<s-n>", better_n.previous, { nowait = true, expr = true })
 
 describe("feature", function()
   before_each(function()
@@ -60,7 +60,7 @@ describe("feature", function()
     }, result)
   end)
 
-  it("does not interefere with the 'normal' command", function()
+  it("does not interfere with the 'normal' command", function()
     t.feed(":1,2normal fanciwTEXT<cr>")
 
     local result = t.get_buf_lines()
