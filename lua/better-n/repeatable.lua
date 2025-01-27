@@ -27,6 +27,9 @@ function Repeatable:new(opts)
     return instance:_passthrough()
   end
 
+  instance.prev = instance.previous
+  instance.prev_key = instance.previous_key
+
   return instance
 end
 
