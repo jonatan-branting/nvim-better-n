@@ -42,13 +42,14 @@ require("better-n").setup(
     -- By default, the following mappings are made repeatable using `n` and `<S-n>`:
     -- `f`, `F`, `t`, `T`, `*`, `#`, `/`, `?`
     disable_default_mappings = false,
+    disable_cmdline_mappings = false,
   }
 )
 
 vim.nvim_create_autocmd("User", {
   pattern = "BetterNMappingExecuted",
   callback = function(args)
-    -- args.data.key and args.data.mode are available here
+    -- args.data.repeatable_id and args.data.mode are available here
   end
 })
 
@@ -56,10 +57,33 @@ vim.nvim_create_autocmd("User", {
 local hunk_navigation = require("better-n").create(
   {
     next =  require("gitsigns").next_hunk,
-    previous = require("gitsigns").prev_hunk
+    prev = require("gitsigns").prev_hunk
   }
 )
 
-vim.keymap.set({ "n", "x" }, "]h", hunk_navigation.next)
-vim.keymap.set({ "n", "x" }, "[h", hunk_navigation.previous)
+vim.keymap.set({ "n", "x" }, "]h", hunk_navigation.next_key)
+vim.keymap.set({ "n", "x" }, "[h", hunk_navigation.previous_key)
+
+-- or
+
+vim.keymap.set({ "n", "x" }, "]h", hunk_navigation.next, { expr = true })
+vim.keymap.set({ "n", "x" }, "[h", hunk_navigation.prev, { expr = true })
+
+--
+```
+
+## Repeatable buffer-local mappings
+To make buffer-local mappings repeatable, you can wrap the mappings in a `FileType` autocommand.
+
+```lua
+ vim.api.nvim_create_autocmd(
+  "FileType",
+  {
+    callback = function(args)
+      local repeatable_square_brackets = require("better_n").create({ next = "]]", prev = "[[" })
+
+      vim.keymap.set("n", "]]", repeatable_square_brackets.next_key, { buffer = args.buf })
+      vim.keymap.set("n", "[[", repeatable_square_brackets.prev_key, { buffer = args.buf }))
+  }
+)
 ```
