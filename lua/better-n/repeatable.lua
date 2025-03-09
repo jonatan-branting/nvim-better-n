@@ -65,7 +65,7 @@ function Repeatable:_passthrough()
     data = { repeatable_id = self.id, key = self.id, mode = vim.fn.mode() },
   })
 
-  if type(self.pasthrough_action) == "function" then
+  if type(self.passthrough_action) == "function" then
     return vim.schedule(self.passthrough_action)
   else
     return vim.v.count1 .. self.passthrough_action
