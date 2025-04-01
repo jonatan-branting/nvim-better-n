@@ -1,4 +1,4 @@
-local Keymap = require("better-n.keymap")
+local Keymap = require("better-n.lib.keymap")
 
 local Repeatable = {}
 

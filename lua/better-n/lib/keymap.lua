@@ -1,4 +1,4 @@
-local Enumerable = require("better-n.enumerable")
+local Enumerable = require("better-n.lib.enumerable")
 
 local Keymap = {}
 

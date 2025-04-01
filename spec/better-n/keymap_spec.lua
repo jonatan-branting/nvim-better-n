@@ -1,4 +1,4 @@
-local Keymap = require("better-n.keymap")
+local Keymap = require("better-n.lib.keymap")
 
 describe("__index", function()
   it("should return the correct mapping for a given key", function()
@@ -22,7 +22,7 @@ describe("__index", function()
   end)
 
   it("should return nil for a non-existent key", function()
-    local keymap = require("better-n.keymap"):new({ bufnr = 0, mode = "n" })
+    local keymap = Keymap:new({ bufnr = 0, mode = "n" })
     local mapping = keymap["<C-x>"]
 
     assert.is_nil(mapping)
