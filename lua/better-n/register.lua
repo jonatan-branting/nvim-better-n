@@ -41,11 +41,11 @@ end
 function Register:create(opts)
   local repeatable = Repeatable:new({
     register = self,
-    bufnr = opts.bufnr,
+    bufnr = opts.bufnr or 0,
     next = opts.next,
     previous = opts.previous or opts.prev,
     passthrough = opts.initiate or opts.key or opts.next,
-    mode = opts.mode,
+    mode = opts.mode or "n",
     id = opts.id,
   })
 

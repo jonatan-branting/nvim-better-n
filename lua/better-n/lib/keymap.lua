@@ -4,15 +4,20 @@ local Keymap = {}
 
 function Keymap:new(opts)
   local instance = {
-    bufnr = opts.bufnr,
+    bufnr = opts.bufnr or 0,
     mode = opts.mode or "n",
   }
 
-  local raw_keymap = instance.bufnr and
-    vim.api.nvim_buf_get_keymap(instance.bufnr, instance.mode) or
-    vim.api.nvim_get_keymap(instance.mode)
+  local buffer_mappings = vim.api.nvim_buf_get_keymap(instance.bufnr, instance.mode)
+  local global_mappings = vim.api.nvim_get_keymap(instance.mode)
 
-  instance.keymap = Enumerable:new(raw_keymap)
+  local mappings = Enumerable:new(buffer_mappings)
+  for _, mapping in ipairs(global_mappings) do
+    mappings:append(mapping)
+  end
+
+  instance.mappings = mappings
+
   setmetatable(instance, Keymap)
 
   return instance
@@ -26,11 +31,11 @@ Keymap.__index = function(self, key)
   end
 
   -- Ensure it has the expected casing and format
-  local transformed_key = vim.fn.keytrans(vim.keycode(key))
-  local keymap = rawget(self, "keymap")
+  local keycode = vim.keycode(key)
+  local mappings = rawget(self, "mappings")
 
-  return keymap:find(function(mapping)
-    return mapping.lhs == transformed_key
+  return mappings:find(function(mapping)
+    return vim.keycode(mapping.lhs) == keycode
   end)
 end
 

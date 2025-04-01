@@ -12,12 +12,12 @@ describe("__index", function()
   end)
 
   it("should return the correct mapping for a given key bound for a specific buffer", function()
-    vim.keymap.set("n", "<C-a>", "<cmd>another-test-keymap<cr>", { buffer = 0 })
+    vim.keymap.set("n", "]]", "<cmd>another-test-keymap<cr>", { buffer = 0 })
     local keymap = Keymap:new({ bufnr = 0, mode = "n" })
-    local mapping = keymap["<C-a>"]
+    local mapping = keymap["]]"]
 
     assert.is_not_nil(mapping)
-    assert.are.equal("<C-A>", mapping.lhs)
+    assert.are.equal("]]", mapping.lhs)
     assert.are.equal("<Cmd>another-test-keymap<CR>", mapping.rhs)
   end)
 
