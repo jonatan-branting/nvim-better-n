@@ -30,11 +30,11 @@ Keymap.__index = function(self, key)
     return class_value
   end
 
-  -- Ensure it has the expected casing and format
   local keycode = vim.keycode(key)
   local mappings = rawget(self, "mappings")
 
   return mappings:find(function(mapping)
+    -- Compare using keycodes to avoid casing issues
     return vim.keycode(mapping.lhs) == keycode
   end)
 end
