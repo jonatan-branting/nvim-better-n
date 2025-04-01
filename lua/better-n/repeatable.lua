@@ -1,13 +1,15 @@
+local Keymap = require("better-n.keymap")
+
 local Repeatable = {}
 
 function Repeatable:new(opts)
+  local keymap = Keymap:new({bufnr = opts.bufnr, mode = "n"})
   local instance = {
     register = opts.register or error("opts.register is required" .. vim.inspect(opts)),
     passthrough_action = opts.passthrough or error("opts.passthrough is required" .. vim.inspect(opts)),
-    next_action = opts.next or error("opts.next is required" .. vim.inspect(opts)),
-    previous_action = opts.previous or error("opts.previous is required" .. vim.inspect(opts)),
     id = opts.id or opts.register:_num_repeatables(),
     mode = opts.mode or { "n" },
+    bufnr = opts.bufnr
   }
 
   setmetatable(instance, self)
@@ -16,6 +18,22 @@ function Repeatable:new(opts)
   instance.passthrough_key = "<Plug>(better-n-#" .. instance.id .. ")"
   instance.next_key = "<Plug>(better-n-#" .. instance.id .. "-next)"
   instance.previous_key = "<Plug>(better-n-#" .. instance.id .. "-previous)"
+
+  local next_action = opts.next or error("opts.next is required" .. vim.inspect(opts))
+  local previous_action = opts.previous or error("opts.previous or opts.prev is required" .. vim.inspect(opts))
+
+  -- Extract the actual action from the keymap if it's a string.
+  -- This is more robust, and solves some remap issues that can otherwise occur.
+  if type(next_action) == "string" then
+    next_action = (keymap[next_action] or {}).rhs or next_action
+  end
+
+  if type(previous_action) == "string"then
+    previous_action = (keymap[previous_action] or {}).rhs or previous_action
+  end
+
+  instance.next_action = next_action
+  instance.previous_action = previous_action
 
   instance.next = function()
     return instance:_next()
