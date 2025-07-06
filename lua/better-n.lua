@@ -60,4 +60,8 @@ function M.create(...)
   return M.instance():create(...)
 end
 
+function M.create_from_mapping(...)
+  return M.instance():create_from_mapping(...)
+end
+
 return M

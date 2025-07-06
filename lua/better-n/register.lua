@@ -1,4 +1,5 @@
 local Repeatable = require("better-n.repeatable")
+local Keymap = require("better-n.lib.keymap")
 
 local augroup = vim.api.nvim_create_augroup("BetterN", {})
 
@@ -56,6 +57,24 @@ function Register:create(opts)
   self.repeatables[repeatable.id] = repeatable
 
   return repeatable
+end
+
+function Register:create_from_mapping(opts)
+  local mode = opts.mode or "n"
+  local next_action = opts.next
+  local previous_action = opts.previous or opts.prev
+
+  local keymap = Keymap:new({bufnr = opts.bufnr, mode = mode})
+
+  if type(next_action) == "string" then
+    next_action = (keymap[next_action] or {}).rhs or next_action
+  end
+
+  if type(previous_action) == "string" then
+    previous_action = (keymap[previous_action] or {}).rhs or previous_action
+  end
+
+  return self:create({ unpack(opts), next = next_action, previous = previous_action, mode = mode})
 end
 
 function Register:next()
