@@ -64,15 +64,12 @@ function Register:create_from_mapping(opts)
   local next_action = opts.next
   local previous_action = opts.previous or opts.prev
 
+  assert(type(next_action) == "string", "opts.next must be a string representing an existing mapping")
+  assert(type(previous_action) == "string", "opts.previous or opts.prev must be a string representing an existing mapping")
+
   local keymap = Keymap:new({bufnr = opts.bufnr, mode = mode})
-
-  if type(next_action) == "string" then
-    next_action = (keymap[next_action] or {}).rhs or next_action
-  end
-
-  if type(previous_action) == "string" then
-    previous_action = (keymap[previous_action] or {}).rhs or previous_action
-  end
+  next_action = keymap[next_action] and next_action.rhs or "<Nop>"
+  previous_action = keymap[previous_action] and previous_action.rhs or "<Nop>"
 
   return self:create({ unpack(opts), next = next_action, previous = previous_action, mode = mode})
 end

@@ -25,4 +25,11 @@ describe("#create_from_mapping", function()
 
     assert.same({ 1, 5 }, vim.api.nvim_win_get_cursor(0))
   end)
+
+  it("registers the mapping to <nop> if mapping doesn't exist", function()
+    local missing_mapping = better_n.create_from_mapping( { next = ")}", prev = "({", })
+
+    assert.equal("<Nop>", missing_mapping.next_action)
+    assert.equal("<Nop>", missing_mapping.previous_action)
+  end)
 end)
