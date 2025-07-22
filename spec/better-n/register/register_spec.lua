@@ -6,8 +6,8 @@ vim.keymap.set({ "n", "x" }, "n", better_n.next, { nowait = true, expr = true })
 vim.keymap.set({ "n", "x" }, "<s-n>", better_n.previous, { nowait = true, expr = true })
 
 -- Existing mapping we'll test against
-vim.keymap.set({ "n" }, "<Plug>(better-n-test-next)", "f)", { expr = true})
-vim.keymap.set({ "n" }, "<Plug>(better-n-test-prev)", "f(", { expr = true})
+vim.keymap.set({ "n" }, "<Plug>(better-n-test-next)", "f)", { expr = true })
+vim.keymap.set({ "n" }, "<Plug>(better-n-test-prev)", "f(", { expr = true })
 
 describe("#create_from_mapping", function()
   before_each(function()
