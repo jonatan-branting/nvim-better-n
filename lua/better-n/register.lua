@@ -1,6 +1,7 @@
 local Repeatable = require("better-n.repeatable")
 
 local augroup = vim.api.nvim_create_augroup("BetterN", {})
+local ns_id = vim.api.nvim_create_namespace("BetterN")
 
 local Register = {}
 
@@ -8,10 +9,14 @@ function Register:new()
   local instance = {
     last_repeatable_id = nil,
     repeatables = {},
+    repeatables_by_key = {},
+    type_buffer = ""
   }
 
   setmetatable(instance, self)
   self.__index = self
+
+  local safestate_augroup = vim.api.nvim_create_augroup("BetterNSafeState", { clear = true })
 
   vim.api.nvim_create_autocmd("CmdlineLeave", {
     group = augroup,
@@ -35,25 +40,67 @@ function Register:new()
     end,
   })
 
+  vim.on_key(
+    function(_, typed)
+      instance.type_buffer = instance.type_buffer .. typed
+
+      vim.api.nvim_create_autocmd("SafeState", {
+        group = safestate_augroup,
+        callback = function(_)
+          local repeatable = nil
+          for i = #instance.type_buffer, 1, -1 do
+            local key = instance.type_buffer:sub(1, i)
+            repeatable = instance.repeatables_by_key[key]
+
+            if repeatable ~= nil then
+              break
+            end
+          end
+
+          instance.type_buffer = ""
+
+          if repeatable ~= nil then
+            instance.last_repeatable_id = repeatable.id
+          end
+        end,
+        once = true
+      })
+    end,
+    ns_id,
+    {}
+  )
+
   return instance
 end
 
 function Register:create(opts)
   local repeatable = Repeatable:new({
-    register = self,
+    id = opts.id or self:_num_repeatables() + 1,
     bufnr = opts.bufnr or 0,
-    next = opts.next,
-    previous = opts.previous or opts.prev,
-    passthrough = opts.initiate or opts.key or opts.next,
+    next_action = opts.next,
+    prev_action = opts.previous or opts.prev,
     mode = opts.mode or "n",
-    id = opts.id,
   })
 
-  vim.keymap.set(repeatable.mode, repeatable.passthrough_key, repeatable.passthrough, { expr = true, silent = true })
   vim.keymap.set(repeatable.mode, repeatable.next_key, repeatable.next, { expr = true, silent = true })
-  vim.keymap.set(repeatable.mode, repeatable.previous_key, repeatable.previous, { expr = true, silent = true })
+  vim.keymap.set(repeatable.mode, repeatable.prev_key, repeatable.prev, { expr = true, silent = true })
 
   self.repeatables[repeatable.id] = repeatable
+
+  return repeatable
+end
+
+function Register:listen(key, opts)
+  local repeatable = Repeatable:new({
+    id = key or self:_num_repeatables() + 1,
+    bufnr = opts.bufnr or 0,
+    next_action = opts.next,
+    prev_action = opts.previous or opts.prev,
+    mode = opts.mode or "n",
+  })
+
+  self.repeatables[repeatable.id] = repeatable
+  self.repeatables_by_key[key] = repeatable
 
   return repeatable
 end

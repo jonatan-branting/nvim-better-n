@@ -14,24 +14,6 @@ function M.instance()
 end
 
 function M.setup(opts)
-  if opts.mappings then
-    vim.deprecate(
-      "opts.mappings is deprecated",
-      'create mappings manually using `require("better-n").create({ next = ..., previous = ... })`',
-      "HEAD",
-      "nvim-better-n",
-      false
-    )
-  end
-  if opts.callbacks then
-    vim.deprecate(
-      "opts.callbacks",
-      "Use `vim.api.nvim_create_autocmd` to listen to the User event with pattern `BetterNMappingExecuted` instead",
-      "HEAD",
-      "nvim-better-n",
-      false
-    )
-  end
   local defaults = Config.get_default_config()
   local config = vim.tbl_deep_extend("force", defaults, opts)
 
@@ -48,6 +30,10 @@ function M.previous()
   return M.instance():previous()
 end
 
+function M.prev()
+  return M.previous()
+end
+
 function M.n()
   return M.next()
 end
@@ -58,6 +44,10 @@ end
 
 function M.create(...)
   return M.instance():create(...)
+end
+
+function M.listen(...)
+  return M.instance():listen(...)
 end
 
 return M
