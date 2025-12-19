@@ -5,6 +5,7 @@ function M.feed(text, feed_opts)
   local to_feed = vim.api.nvim_replace_termcodes(text, true, false, true)
 
   vim.api.nvim_feedkeys(to_feed, feed_opts, false)
+  vim.api.nvim_exec_autocmds("SafeState", {})
 end
 
 function M.setup_buffer(input, filetype)
