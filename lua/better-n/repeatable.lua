@@ -79,8 +79,6 @@ function Repeatable:_next()
   local count = action:match("^(%d+)") or vim.v.count1
   action = action:gsub("^(%d+)", "")
 
-  print(count, action)
-
   return count .. action
 end
 
@@ -94,7 +92,6 @@ function Repeatable:_previous()
   local count = action:match("^(%d+)") or vim.v.count1
   action = action:gsub("^(%d+)", "")
 
-  print(count, action)
   return count .. action
 end
 
@@ -108,7 +105,6 @@ function Repeatable:_passthrough()
   local count = action:match("^(%d+)") or vim.v.count1
   action = action:gsub("^(%d+)", "")
 
-  print(count, action)
   return count .. action
 end
 
