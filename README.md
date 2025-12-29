@@ -53,7 +53,9 @@ vim.nvim_create_autocmd("User", {
   end
 })
 
--- You create repeatable mappings like this:
+-- You can create repeatable mappings in two ways:
+
+-- 1. Use `create()` when you want to define your own custom keybindings:
 local hunk_navigation = require("better-n").create(
   {
     next =  require("gitsigns").next_hunk,
@@ -62,12 +64,22 @@ local hunk_navigation = require("better-n").create(
 )
 
 vim.keymap.set({ "n", "x" }, "]h", hunk_navigation.next_key)
-vim.keymap.set({ "n", "x" }, "[h", hunk_navigation.previous_key)
+vim.keymap.set({ "n", "x" }, "[h", hunk_navigation.prev_key)
 
 -- or
 
 vim.keymap.set({ "n", "x" }, "]h", hunk_navigation.next, { expr = true })
 vim.keymap.set({ "n", "x" }, "[h", hunk_navigation.prev, { expr = true })
+
+-- 2. Use `listen()` when you want to make existing keybindings repeatable:
+--    This monitors when specific keys are pressed and makes them repeatable with `n`
+require("better-n").listen("5j", {
+  next = "5gj",  -- Moving down by display line
+  prev = "5gk"   -- Moving up by display line
+})
+
+-- Now when you press `gj`, you can repeat it with `n` and reverse with `N`
+-- This is useful for commands that are already mapped by plugins or built-in Vim
 
 --
 ```
