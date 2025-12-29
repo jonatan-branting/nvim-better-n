@@ -32,8 +32,8 @@ function Register:new()
         return
       end
 
-      print("Buffer", instance.type_buffer)
-      local repeatable, captures = instance:find_repeatable_by_pattern(instance.type_buffer)
+      local str = vim.fn.keytrans(instance.type_buffer)
+      local repeatable, captures = instance:find_repeatable_by_pattern(str)
 
       instance.type_buffer = ""
 
@@ -84,7 +84,8 @@ function Register:new()
           return
         end
 
-        local repeatable, captures = instance:find_repeatable_by_pattern(instance.type_buffer)
+        local str = vim.fn.keytrans(instance.type_buffer)
+        local repeatable, captures = instance:find_repeatable_by_pattern(str)
 
         instance.type_buffer = ""
 
@@ -122,7 +123,11 @@ end
 function Register:listen(pattern, opts)
   assert(type(pattern) == "string", "pattern has to be a string representing a Lua pattern")
 
+  pattern = vim.api.nvim_replace_termcodes(pattern, true, false, true)
+  pattern = vim.fn.keytrans(pattern)
+  pattern = pattern:gsub("<Cmd>", ":")
   pattern = "^" .. pattern .. "$"
+
   local repeatable = Repeatable:new({
     id = pattern,
     bufnr = opts.bufnr or 0,
