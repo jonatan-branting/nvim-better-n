@@ -73,29 +73,20 @@ vim.keymap.set({ "n", "x" }, "[h", hunk_navigation.prev, { expr = true })
 
 -- 2. Use `listen()` when you want to make existing keybindings repeatable:
 --    This monitors when specific keys are pressed and makes them repeatable with `n`
-require("better-n").listen("5j", {
-  next = "5gj",  -- Moving down by display line
-  prev = "5gk"   -- Moving up by display line
+require("better-n").listen("(%d-)j(.*)", {
+  -- Arguments will be what was matched in the pattern above
+  match = function(count, rest)
+    return (tonumber(d) or 1) >= 5
+  end,
+  next = "5gj", -- Moving down by display line
+  prev = "5gk", -- Moving up by display line
+  remap = true  -- Honor existing remaps, such as j => gj
 })
 
 -- Now when you press `gj`, you can repeat it with `n` and reverse with `N`
 -- This is useful for commands that are already mapped by plugins or built-in Vim
-
 --
-```
-
-## Repeatable buffer-local mappings
-To make buffer-local mappings repeatable, you can wrap the mappings in a `FileType` autocommand.
-
-```lua
- vim.api.nvim_create_autocmd(
-  "FileType",
-  {
-    callback = function(args)
-      local repeatable_square_brackets = require("better_n").create({ next = "]]", prev = "[[" })
-
-      vim.keymap.set("n", "]]", repeatable_square_brackets.next_key, { buffer = args.buf })
-      vim.keymap.set("n", "[[", repeatable_square_brackets.prev_key, { buffer = args.buf }))
-  }
-)
+-- Note: it's advised to create explicit mappings when possible, as -- `listen`
+-- won't work with :normal, and is more expensive performance-wise.
+--
 ```
