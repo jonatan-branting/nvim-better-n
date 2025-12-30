@@ -29,6 +29,7 @@ function Repeatable:new(opts)
   elseif type(opts.next_action) == "string" then
     -- stylua: ignore
     instance.next_action = function() return opts.next_action end
+    instance.expr = true
   else
     error("opts.next_action has to be provided and be a string or a function")
   end
@@ -38,11 +39,12 @@ function Repeatable:new(opts)
   elseif type(opts.prev_action) == "string" then
     -- stylua: ignore
     instance.prev_action = function() return opts.prev_action end
+    instance.expr = true
   else
     error("opts.prev_action has to be provided and be a string or a function")
   end
 
-  instance.expr = type(opts.expr) == "boolean" and opts.expr or false
+  instance.expr = type(opts.expr) == "boolean" and opts.expr or instance.expr
   instance.remap = type(opts.remap) == "boolean" and opts.remap or false
 
   instance.next_key = "<Plug>(better-n-#" .. instance.id .. "-next)"
