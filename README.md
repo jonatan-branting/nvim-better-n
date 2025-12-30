@@ -78,8 +78,8 @@ require("better-n").listen("(%d-)j(.*)", {
   match = function(count, rest)
     return (tonumber(d) or 1) >= 5
   end,
-  next = "5gj", -- Moving down by display line
-  prev = "5gk", -- Moving up by display line
+  next = "5j", -- Moving down by display line
+  prev = "5k", -- Moving up by display line
   remap = true  -- Honor existing remaps, such as j => gj
 })
 
