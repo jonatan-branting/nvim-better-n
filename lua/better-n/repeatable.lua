@@ -1,52 +1,72 @@
-local Keymap = require("better-n.lib.keymap")
-
 local Repeatable = {}
 
 function Repeatable:new(opts)
-  local instance = {
-    register = opts.register or error("opts.register is required" .. vim.inspect(opts)),
-    passthrough_action = opts.passthrough or error("opts.passthrough is required" .. vim.inspect(opts)),
-    id = opts.id or opts.register:_num_repeatables(),
-    mode = opts.mode,
-    bufnr = opts.bufnr
-  }
+  local instance = {}
 
   setmetatable(instance, self)
   self.__index = self
 
-  instance.passthrough_key = "<Plug>(better-n-#" .. instance.id .. ")"
+  instance.id = assert(opts.id)
+  instance.register = opts.register
+  instance.bufnr = assert(opts.bufnr)
+  instance.mode = opts.mode or { "x", "n" }
+  instance.match = opts.match or function()
+    return true
+  end
+
+  if type(opts.passthrough_action) == "function" then
+    instance.passthrough_action = opts.passthrough_action
+  elseif type(opts.passthrough_action) == "string" then
+    -- stylua: ignore
+    instance.passthrough_action = function() return opts.passthrough_action end
+  else
+    -- stylua: ignore
+    instance.passthrough_action = function() return "<Nop>" end
+  end
+
+  if type(opts.next_action) == "function" then
+    instance.next_action = opts.next_action
+  elseif type(opts.next_action) == "string" then
+    -- stylua: ignore
+    instance.next_action = function() return opts.next_action end
+    instance.expr = true
+  else
+    error("opts.next_action has to be provided and be a string or a function")
+  end
+
+  if type(opts.prev_action) == "function" then
+    instance.prev_action = opts.prev_action
+  elseif type(opts.prev_action) == "string" then
+    -- stylua: ignore
+    instance.prev_action = function() return opts.prev_action end
+    instance.expr = true
+  else
+    error("opts.prev_action has to be provided and be a string or a function")
+  end
+
+  instance.expr = type(opts.expr) == "boolean" and opts.expr or instance.expr
+  instance.remap = type(opts.remap) == "boolean" and opts.remap or false
+
   instance.next_key = "<Plug>(better-n-#" .. instance.id .. "-next)"
-  instance.previous_key = "<Plug>(better-n-#" .. instance.id .. "-previous)"
+  instance.prev_key = "<Plug>(better-n-#" .. instance.id .. "-previous)"
+  instance.passthrough_key = "<Plug>(better-n-#" .. instance.id .. "-passthrough)"
 
-  local keymap = Keymap:new({bufnr = opts.bufnr, mode = instance.mode})
-  local next_action = opts.next or error("opts.next is required" .. vim.inspect(opts))
-  local previous_action = opts.previous or error("opts.previous or opts.prev is required" .. vim.inspect(opts))
+  -- stylua: ignore start
+  instance.next = function() return instance:_next() end
+  instance.prev = function() return instance:_previous() end
+  instance.passthrough = function() return instance:_passthrough() end
+  -- stylua: ignore end
 
-  -- Extract the actual action from the keymap if it's a string.
-  -- This is more robust, and solves some remap issues that can otherwise occur.
-  if type(next_action) == "string" then
-    next_action = (keymap[next_action] or {}).rhs or next_action
-  end
+  -- stylua: ignore start
+  vim.keymap.set(instance.mode, instance.next_key, instance.next, { expr = instance.expr, remap = instance.remap, silent = true })
+  vim.keymap.set(instance.mode, instance.prev_key, instance.prev, { expr = instance.expr, remap = instance.remap, silent = true })
+  vim.keymap.set(instance.mode, instance.passthrough_key, instance.passthrough, { expr = instance.expr, remap = instance.remap, silent = true })
+  -- stylua: ignore end
 
-  if type(previous_action) == "string" then
-    previous_action = (keymap[previous_action] or {}).rhs or previous_action
-  end
-
-  instance.next_action = next_action
-  instance.previous_action = previous_action
-
-  instance.next = function()
-    return instance:_next()
-  end
-  instance.previous = function()
-    return instance:_previous()
-  end
-  instance.passthrough = function()
-    return instance:_passthrough()
-  end
-
-  instance.prev = instance.previous
-  instance.prev_key = instance.previous_key
+  -- Maintain compatibility with previous versions
+  instance.previous = instance.prev
+  instance.previous_action = instance.prev_action
+  instance.previous_key = instance.prev_key
 
   return instance
 end
@@ -57,11 +77,11 @@ function Repeatable:_next()
     data = { repeatable_id = self.id, key = self.id, mode = vim.fn.mode() },
   })
 
-  if type(self.next_action) == "function" then
-    return vim.schedule(self.next_action)
-  else
-    return vim.v.count1 .. self.next_action
-  end
+  local action = self.next_action(vim.v.count1) or "<Nop>"
+  local count = action:match("^(%d+)") or vim.v.count1
+  action = action:gsub("^(%d+)", "")
+
+  return count .. action
 end
 
 function Repeatable:_previous()
@@ -70,24 +90,24 @@ function Repeatable:_previous()
     data = { repeatable_id = self.id, key = self.id, mode = vim.fn.mode() },
   })
 
-  if type(self.previous_action) == "function" then
-    return vim.schedule(self.previous_action)
-  else
-    return vim.v.count1 .. self.previous_action
-  end
+  local action = self.prev_action(vim.v.count1) or "<Nop>"
+  local count = action:match("^(%d+)") or vim.v.count1
+  action = action:gsub("^(%d+)", "")
+
+  return count .. action
 end
 
 function Repeatable:_passthrough()
   vim.api.nvim_exec_autocmds("User", {
-    pattern = { "BetterNPassthrough", "BetterNMappingExecuted" },
+    pattern = { "BetterNAction", "BetterNMappingExecuted" },
     data = { repeatable_id = self.id, key = self.id, mode = vim.fn.mode() },
   })
 
-  if type(self.passthrough_action) == "function" then
-    return vim.schedule(self.passthrough_action)
-  else
-    return vim.v.count1 .. self.passthrough_action
-  end
+  local action = self.passthrough_action(vim.v.count1) or "<Nop>"
+  local count = action:match("^(%d+)") or vim.v.count1
+  action = action:gsub("^(%d+)", "")
+
+  return count .. action
 end
 
 return Repeatable
