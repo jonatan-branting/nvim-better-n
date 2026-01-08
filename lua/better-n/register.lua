@@ -61,6 +61,10 @@ function Register:new()
       return
     end
 
+    if vim.fn.keytrans(typed):match("^<ScrollWheel") then
+      return
+    end
+
     if vim.fn.mode() == "i" then
       return
     end
